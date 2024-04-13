@@ -1,0 +1,45 @@
+is_category(C) 
+succeeds only if word(_,C) holds, 
+word(_,C) holds only if one of the words in the KB atleast has a category C.
+
+categories(L)
+using the predefined predicate setof(C,is_category(C),L). setof does not allow duplicates in list L, which is a list that its members are all possible matches of C without duplicates.
+
+available_length(L)
+it holds if there is word W in the KB that we have its characters members of the list List (using the predefined predicate atom_chars/2) and List has length L (using the predefined predicate length/2).
+
+pick_word(W,L,C)
+holds if in the KB there is a word W of category C and word W we have its characters members of the list List (using the predefined predicate atom_chars/2) and List has length L (using the predefined predicate length/2).
+
+removeDuplicates/2
+the second argument is the list in the first argument but after removing any duplicates, this needed 3 cases to handle, we will use this predicate in the correct letters predicate. It uses the predefined predicate member/2.
+
+correct_letters(L1,L2,CL)
+we called the helper of it correct_letters_H which takes L1 and L2 and gives us L3 which has the common members, then we remove duplicates from L3 to give us the list CL.
+
+correct_positions(L1,L2,PL)
+It checks the heads of both lists and sees if they are equal, if so this character is placed as the head of the new list PL.
+
+build_kb
+we output a statement to ask the user to enter a word and its category on separate lines using write predefined predicate, then we go to a new line by nl, then we read from user, and we have cases, if the input wasn't done we take a second input and add the fact word(Word,Category) to the KB by assert, then we do the recursive call.
+
+choose_category(Category)
+we output a statement to ask the user to choose a category using write predefined predicate, then we go to a new line by nl, then we read from user, and we have cases, if the input was a category in the KB (using isCategory) we match the input of the user to the argument of choose_category, else we output an error message then the recursive call.
+
+choose_length(Length,C)
+we output a statement to ask the user to choose a length using write predefined predicate, then we go to a new line by nl, then we read from user, and we have cases, if the input was a length of a word in the KB of the same category that the user just chose we match the input of the user to Length and we output a message that game started and the number of guesses are the length the user chose + 1, else we output an error message then the recursive call.
+
+play
+Using category(L), we display to the user all the available categories without duplicates then we use the helper method choose_category(Category) so that the variable "Category" is the category chosen by the user. Then we use the helper method choose_length(Length,Category) to enable the user to choose a length for the word he wants to guess. Hence, we use pick_word(Word,Length,Category) to let the computer pick a word for the user to guess. Then we use the helper predicate guess which handles the guesses that the user enters.
+
+guess/3
+It takes three arguments, the first one is the length chosen by the user, the second is the number of guesses remaining at the moment and the third is the word chosen by the computer. We have 2 cases for the number of guesses remaining: 
+1- The first case is that if the number of guesses remaining is larger than 1, we display to    the user to enter a word composed of the chosen length then we read from the user and use atom_chars (predefined) to break the word into a list of characters. Then we get the length of the list of characters. If the word that the user entered is the same as the word chosen by the computer we display that the user won. Else if the user entered a length other that the length that he chose at the begining of the game we display an error message and the number of geuesses won't be decremented and we have the recursive call. Else if the word he entered wasn't in the kb we display an error message and the number of guesses remains the same and the recursive call is applied. Else we display to the user the correct letters and their positions using our implemented predicates and the number of guesses will be decremented and we apply the recursive call.
+2- The second case is that if the remaining number of guesses is 1, we will do the same as case 1 except that we won't have the last case that the user will have another chance to guess when he enters a word in the kb which has the right length but it's not the one chosen by the computer. Instead of this case we will display to the user that he lost.
+
+main
+This is the driver predicate. First we display a welcoming statement to the game and then we have the predicate build-kb (explained above) then we display to the user that building the words data base is done. At last we have the predicate play.
+
+
+
+                     

@@ -1,0 +1,154 @@
+is_category(C):- word(_,C).
+
+categories(L):- setof(C,is_category(C),L).
+
+available_length(L):- 
+                      word(W,_),
+                      atom_chars(W,List),
+                      length(List,L).
+
+pick_word(W,L,C):-
+                 word(W,C),
+                 atom_chars(W,List),
+                 length(List,L).
+
+removeDuplicates([], []).
+
+removeDuplicates([H|T], N):- 
+                           member(H,T),                                                                      removeDuplicates(T, N).
+
+removeDuplicates([H|T], [H|N]):- 
+                               \+ member(H,T),
+                               removeDuplicates(T,N).
+
+correct_letters(L1,L2,CL):- 
+                         correct_letters_H(L1,L2,L3),
+                         removeDuplicates(L3,CL).
+
+correct_letters_H(_,[],[]).
+
+correct_letters_H(L1,[H|T1],[H|T2]):-
+                                  member(H,L1),
+                                  correct_letters(L1,T1,T2).
+correct_letters_H(L1,[H|T1],L3):-
+                                  \+ member(H,L1),
+                                  correct_letters(L1,T1,L3).
+
+correct_positions([],_,[]):- ! .
+
+correct_positions(_,[],[]):- ! .
+
+correct_positions([H|T1],[H|T2],[H|T3]):-
+                                        correct_positions(T1,T2,T3).
+correct_positions([H|T1],[X|T2],L):-
+                                   H\==X,
+                                   correct_positions(T1,T2,L).
+                            
+build_kb:-
+         write('Please enter a word and its category on separate lines:'), nl,
+         read(X),
+        ( 
+          X == done;
+          read(Y),
+          assert(word(X,Y)),
+          build_kb
+        ).
+
+choose_category(Category):-
+                 write('Choose a category:'),nl,
+                 read(C),
+                (
+                 is_category(C),
+                 Category=C;
+                 write('This category does not exist.'),nl,
+                 choose_category(Category)
+                ).
+
+choose_length(Length,C):-
+                 write('Choose a length:'),nl,
+                 read(L),
+                (
+                 available_length(L),
+                 pick_word(_,L,C),
+                 L1 is L+1,
+                 write('Game started. You have '),
+                 write(L1),
+                 write(' guesses.'),nl,
+                 Length=L;
+                 write('There are no words of this length, or the the category you chose has no words of this length.'),nl,
+                 choose_length(Length,C)
+                ).
+
+guess(Length,N,Word):-
+         N>1,
+         N1 is N-1,
+         write('Enter a word composed of '),
+         write(Length), write(' letters:'),nl,
+         read(W),
+         atom_chars(Word,List1),
+         atom_chars(W,List2),
+         length(List2,L),
+        (
+         Length==L,
+         Word==W,
+         write('You Won!'),nl;
+         Length\==L,
+         write('Word is not composed of '),
+         write(Length), write(' letters. Try again.'),nl,
+         write('Remaining Guesses are '),
+         write(N),nl,
+         guess(Length,N,Word);
+         (\+ word(W,_)),
+         write('Word is not in KB. Try again.'),nl,
+         write('Remaining Guesses are '),
+         write(N),nl,
+         guess(Length,N,Word);
+         correct_letters(List1,List2,List3),
+         write('Correct letters are: '), write(List3),nl,
+         correct_positions(List1,List2,List4),
+         write('Correct letters in correct positions are: '),
+         write(List4),nl,
+         write('Remaining Guesses are '),
+         write(N1),nl,
+         guess(Length,N1,Word)
+        ).
+
+guess(Length,1,Word):-
+         write('Enter a word composed of '),
+         write(Length), write(' letters:'),nl,
+         read(W),
+         atom_chars(W,List),
+         length(List,L),
+        (
+         Length==L,
+         Word==W,
+         write('You Won!'),nl;
+         Length\==L,
+         write('Word is not composed of '),
+         write(Length), write(' letters. Try again.'),nl,
+         write('Remaining Guesses are 1'),nl,
+         guess(Length,1,Word);
+         (\+ word(W,_)),
+         write('Word is not in KB. Try again.'),nl,
+         write('Remaining Guesses are '),
+         write(N),nl,
+         guess(Length,N,Word);
+         write('You Lost!'),nl
+        ).
+        
+
+play:-
+     categories(L),
+     write('The available categories are: '),
+     write(L),nl,
+     choose_category(Category),
+     choose_length(Length,Category),
+     pick_word(Word,Length,Category),
+     Noofguesses is Length + 1,
+     guess(Length,Noofguesses,Word).
+
+main:-
+     write('Welcome to Pro-Wordle!'),nl,
+     build_kb,
+     write('Done building the words database...'),nl,
+     play.
